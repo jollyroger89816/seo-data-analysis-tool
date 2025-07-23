@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史记录 - 关键词提取和排名查询</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .nav-tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .nav-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .table tr:hover {
+            background: #f5f5f5;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .success-rate {
+            font-weight: bold;
+        }
+        .success-rate.high {
+            color: #28a745;
+        }
+        .success-rate.medium {
+            color: #ffc107;
+        }
+        .success-rate.low {
+            color: #dc3545;
+        }
+        .cleanup-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .cleanup-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cleanup-form input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 历史记录管理</h1>
+        
+        <!-- 统计信息 -->
+        <div class="statistics" id="statistics">
+            <div class="stat-card">
+                <div class="stat-number" id="totalKeywordRecords">-</div>
+                <div class="stat-label">关键词提取记录</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRankRecords">-</div>
+                <div class="stat-label">排名查询记录</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRecords">-</div>
+                <div class="stat-label">总记录数</div>
+            </div>
+        </div>
+
+        <!-- 清理过期记录 -->
+        <div class="cleanup-section">
+            <h3>🗑️ 清理过期记录</h3>
+            <div class="cleanup-form">
+                <label>删除超过</label>
+                <input type="number" id="cleanupDays" value="30" min="1">
+                <label>天的记录</label>
+                <button class="btn btn-danger" onclick="cleanupOldRecords()">清理过期记录</button>
+            </div>
+        </div>
+
+        <!-- 标签页 -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('keywords')">关键词提取记录</button>
+            <button class="nav-tab" onclick="showTab('rankings')">排名查询记录</button>
+        </div>
+
+        <!-- 关键词提取记录 -->
+        <div id="keywordsTab" class="tab-content active">
+            <div class="controls">
+                <h3>🔍 关键词提取记录</h3>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshKeywordHistory()">刷新</button>
+                    <button class="btn btn-success" onclick="exportKeywordHistory()">导出记录</button>
+                </div>
+            </div>
+            <div id="keywordHistoryContent">
+                <div class="loading">正在加载关键词提取历史...</div>
+            </div>
+        </div>
+
+        <!-- 排名查询记录 -->
+        <div id="rankingsTab" class="tab-content">
+            <div class="controls">
+                <h3>📈 排名查询记录</h3>
+                <div>
+                    <button class="btn btn-primary" onclick="refreshRankHistory()">刷新</button>
+                    <button class="btn btn-success" onclick="exportRankHistory()">导出记录</button>
+                </div>
+            </div>
+            <div id="rankHistoryContent">
+                <div class="loading">正在加载排名查询历史...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 当前活动的标签页
+        let currentTab = 'keywords';
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            loadKeywordHistory();
+        });
+
+        // 标签页切换
+        function showTab(tabName) {
+            // 隐藏所有标签页内容
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // 移除所有标签页按钮的active类
+            const tabButtons = document.querySelectorAll('.nav-tab');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // 显示选中的标签页
+            if (tabName === 'keywords') {
+                document.getElementById('keywordsTab').classList.add('active');
+                document.querySelector('.nav-tab:first-child').classList.add('active');
+                if (currentTab !== 'keywords') {
+                    loadKeywordHistory();
+                }
+            } else if (tabName === 'rankings') {
+                document.getElementById('rankingsTab').classList.add('active');
+                document.querySelector('.nav-tab:last-child').classList.add('active');
+                if (currentTab !== 'rankings') {
+                    loadRankHistory();
+                }
+            }
+            
+            currentTab = tabName;
+        }
+
+        // 加载统计信息
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/history_statistics');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.statistics;
+                    document.getElementById('totalKeywordRecords').textContent = stats.keyword_extraction_count;
+                    document.getElementById('totalRankRecords').textContent = stats.rank_query_count;
+                    document.getElementById('totalRecords').textContent = stats.total_records;
+                } else {
+                    console.error('加载统计信息失败:', data.error);
+                }
+            } catch (error) {
+                console.error('加载统计信息失败:', error);
+            }
+        }
+
+        // 加载关键词提取历史
+        async function loadKeywordHistory() {
+            const container = document.getElementById('keywordHistoryContent');
+            container.innerHTML = '<div class="loading">正在加载关键词提取历史...</div>';
+            
+            try {
+                const response = await fetch('/api/keyword_history?limit=50');
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.history.length === 0) {
+                        container.innerHTML = '<div class="empty-state">暂无关键词提取记录</div>';
+                        return;
+                    }
+                    
+                    let html = '<table class="table">';
+                    html += '<thead><tr>';
+                    html += '<th>时间</th>';
+                    html += '<th>方法</th>';
+                    html += '<th>总URL数</th>';
+                    html += '<th>成功提取</th>';
+                    html += '<th>成功率</th>';
+                    html += '<th>过滤条件</th>';
+                    html += '<th>操作</th>';
+                    html += '</tr></thead><tbody>';
+                    
+                    data.history.forEach(record => {
+                        const successRateClass = record.success_rate >= 80 ? 'high' : 
+                                               record.success_rate >= 60 ? 'medium' : 'low';
+                        
+                        const methodBadge = record.extraction_method === 'from_analysis' ? 
+                                          '<span class="badge badge-info">分析结果</span>' :
+                                          '<span class="badge badge-warning">带过滤</span>';
+                        
+                        let filterInfo = '无';
+                        if (record.filter_conditions) {
+                            const conditions = [];
+                            if (record.filter_conditions.min_decline_uv) conditions.push(`UV≥${record.filter_conditions.min_decline_uv}`);
+                            if (record.filter_conditions.max_decline_uv) conditions.push(`UV≤${record.filter_conditions.max_decline_uv}`);
+                            if (record.filter_conditions.min_decline_rate) conditions.push(`率≥${record.filter_conditions.min_decline_rate}%`);
+                            if (record.filter_conditions.max_decline_rate) conditions.push(`率≤${record.filter_conditions.max_decline_rate}%`);
+                            filterInfo = conditions.join(', ') || '无';
+                        }
+                        
+                        html += '<tr>';
+                        html += `<td>${record.formatted_time}</td>`;
+                        html += `<td>${methodBadge}</td>`;
+                        html += `<td>${record.total_urls}</td>`;
+                        html += `<td>${record.successful_extractions}</td>`;
+                        html += `<td><span class="success-rate ${successRateClass}">${record.success_rate}%</span></td>`;
+                        html += `<td title="${filterInfo}">${filterInfo.length > 20 ? filterInfo.substring(0, 20) + '...' : filterInfo}</td>`;
+                        html += `<td class="action-buttons">`;
+                        html += `<button class="btn btn-primary" onclick="viewKeywordDetail('${record.session_id}')">查看</button>`;
+                        html += `<button class="btn btn-danger" onclick="deleteKeywordRecord('${record.session_id}')">删除</button>`;
+                        html += '</td></tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `<div class="empty-state">加载失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载排名查询历史
+        async function loadRankHistory() {
+            const container = document.getElementById('rankHistoryContent');
+            container.innerHTML = '<div class="loading">正在加载排名查询历史...</div>';
+            
+            try {
+                const response = await fetch('/api/rank_history?limit=50');
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.history.length === 0) {
+                        container.innerHTML = '<div class="empty-state">暂无排名查询记录</div>';
+                        return;
+                    }
+                    
+                    let html = '<table class="table">';
+                    html += '<thead><tr>';
+                    html += '<th>时间</th>';
+                    html += '<th>查询方式</th>';
+                    html += '<th>任务名称</th>';
+                    html += '<th>总查询数</th>';
+                    html += '<th>成功查询</th>';
+                    html += '<th>成功率</th>';
+                    html += '<th>状态</th>';
+                    html += '<th>操作</th>';
+                    html += '</tr></thead><tbody>';
+                    
+                    data.history.forEach(record => {
+                        const successRateClass = record.success_rate >= 80 ? 'high' : 
+                                               record.success_rate >= 60 ? 'medium' : 'low';
+                        
+                        // 根据是否为后台任务显示不同的标记
+                        let methodBadge, taskName, statusBadge;
+                        if (record.is_background_task) {
+                            methodBadge = '<span class="badge badge-info">后台任务</span>';
+                            taskName = record.task_name || '未知任务';
+                            
+                            // 根据任务状态显示不同的标记
+                            switch (record.task_status) {
+                                case 'created':
+                                    statusBadge = '<span class="badge badge-warning">已创建</span>';
+                                    break;
+                                case 'started':
+                                    statusBadge = '<span class="badge badge-info">已启动</span>';
+                                    break;
+                                case 'completed':
+                                    statusBadge = '<span class="badge badge-success">已完成</span>';
+                                    break;
+                                default:
+                                    statusBadge = '<span class="badge badge-warning">未知</span>';
+                            }
+                        } else {
+                            methodBadge = '<span class="badge badge-success">实时查询</span>';
+                            taskName = '实时查询';
+                            statusBadge = '<span class="badge badge-success">已完成</span>';
+                        }
+                        
+                        html += '<tr>';
+                        html += `<td>${record.formatted_time}</td>`;
+                        html += `<td>${methodBadge}</td>`;
+                        html += `<td>${taskName}</td>`;
+                        html += `<td>${record.total_queries}</td>`;
+                        html += `<td>${record.successful_queries}</td>`;
+                        html += `<td><span class="success-rate ${successRateClass}">${record.success_rate}%</span></td>`;
+                        html += `<td>${statusBadge}</td>`;
+                        html += `<td class="action-buttons">`;
+                        html += `<button class="btn btn-primary" onclick="viewRankDetail('${record.session_id}')">查看</button>`;
+                        
+                        // 如果是后台任务且未完成，显示任务管理链接
+                        if (record.is_background_task && record.task_status !== 'completed') {
+                            html += `<button class="btn btn-info" onclick="openTaskManager('${record.session_id}')">管理</button>`;
+                        }
+                        
+                        html += `<button class="btn btn-danger" onclick="deleteRankRecord('${record.session_id}')">删除</button>`;
+                        html += '</td></tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `<div class="empty-state">加载失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="empty-state">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 刷新关键词提取历史
+        function refreshKeywordHistory() {
+            loadKeywordHistory();
+            loadStatistics();
+        }
+
+        // 刷新排名查询历史
+        function refreshRankHistory() {
+            loadRankHistory();
+            loadStatistics();
+        }
+
+        // 查看关键词提取详情
+        async function viewKeywordDetail(sessionId) {
+            try {
+                const response = await fetch(`/api/keyword_history/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const record = data.record;
+                    const extractionData = record.extraction_data;
+                    
+                    let detailHtml = `
+                        <h3>关键词提取详情</h3>
+                        <p><strong>会话ID:</strong> ${record.session_id}</p>
+                        <p><strong>时间:</strong> ${record.timestamp}</p>
+                        <p><strong>总URL数:</strong> ${extractionData.total_urls}</p>
+                        <p><strong>成功提取:</strong> ${extractionData.successful_extractions}</p>
+                        <p><strong>提取方法:</strong> ${extractionData.extraction_method}</p>
+                        <p><strong>线程数:</strong> ${extractionData.max_workers}</p>
+                    `;
+                    
+                    if (extractionData.filter_conditions) {
+                        detailHtml += '<p><strong>过滤条件:</strong></p><ul>';
+                        const conditions = extractionData.filter_conditions;
+                        if (conditions.min_decline_uv) detailHtml += `<li>最小下降UV: ${conditions.min_decline_uv}</li>`;
+                        if (conditions.max_decline_uv) detailHtml += `<li>最大下降UV: ${conditions.max_decline_uv}</li>`;
+                        if (conditions.min_decline_rate) detailHtml += `<li>最小下降率: ${conditions.min_decline_rate}%</li>`;
+                        if (conditions.max_decline_rate) detailHtml += `<li>最大下降率: ${conditions.max_decline_rate}%</li>`;
+                        detailHtml += '</ul>';
+                    }
+                    
+                    alert(detailHtml);
+                } else {
+                    alert('获取详情失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('获取详情失败: ' + error.message);
+            }
+        }
+
+        // 查看排名查询详情
+        async function viewRankDetail(sessionId) {
+            try {
+                const response = await fetch(`/api/rank_history/${sessionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const record = data.record;
+                    const queryData = record.query_data;
+                    
+                    let detailHtml = `
+                        <h3>排名查询详情</h3>
+                        <p><strong>会话ID:</strong> ${record.session_id}</p>
+                        <p><strong>时间:</strong> ${record.timestamp}</p>
+                        <p><strong>总查询数:</strong> ${queryData.total_queries}</p>
+                        <p><strong>成功查询:</strong> ${queryData.successful_queries}</p>
+                        <p><strong>查询方法:</strong> ${queryData.query_method}</p>
+                    `;
+                    
+                    // 如果是后台任务，显示更多信息
+                    if (queryData.query_method === 'background_task') {
+                        detailHtml += `
+                            <p><strong>任务名称:</strong> ${queryData.task_name || '未知任务'}</p>
+                            <p><strong>任务状态:</strong> ${queryData.status || '未知'}</p>
+                            <p><strong>成功率:</strong> ${queryData.total_queries > 0 ? Math.round((queryData.successful_queries / queryData.total_queries) * 100) : 0}%</p>
+                        `;
+                        
+                        if (queryData.status !== 'completed') {
+                            detailHtml += `<p><em>提示：此任务可能仍在执行中，您可以点击"管理"按钮查看实时状态。</em></p>`;
+                        }
+                    }
+                    
+                    alert(detailHtml);
+                } else {
+                    alert('获取详情失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('获取详情失败: ' + error.message);
+            }
+        }
+
+        // 删除关键词提取记录
+        async function deleteKeywordRecord(sessionId) {
+            if (!confirm('确定要删除这条关键词提取记录吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete_keyword_history/${sessionId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('记录删除成功');
+                    refreshKeywordHistory();
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 删除排名查询记录
+        async function deleteRankRecord(sessionId) {
+            if (!confirm('确定要删除这条排名查询记录吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete_rank_history/${sessionId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('记录删除成功');
+                    refreshRankHistory();
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 清理过期记录
+        async function cleanupOldRecords() {
+            const days = document.getElementById('cleanupDays').value;
+            
+            if (!days || days < 1) {
+                alert('请输入有效的天数');
+                return;
+            }
+            
+            if (!confirm(`确定要删除超过 ${days} 天的所有记录吗？`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cleanup_old_records', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        max_age_days: parseInt(days)
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    loadStatistics();
+                    refreshKeywordHistory();
+                    refreshRankHistory();
+                } else {
+                    alert('清理失败: ' + data.error);
+                }
+            } catch (error) {
+                alert('清理失败: ' + error.message);
+            }
+        }
+
+        // 导出关键词提取历史
+        function exportKeywordHistory() {
+            alert('导出功能开发中...');
+        }
+
+        // 导出排名查询历史
+        function exportRankHistory() {
+            alert('导出功能开发中...');
+        }
+
+        // 打开任务管理页面
+        function openTaskManager(taskId) {
+            // 在新窗口打开任务管理页面，并高亮显示指定的任务
+            const url = `/tasks#task-${taskId}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html> 

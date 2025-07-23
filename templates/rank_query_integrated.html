@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关键词排名查询工具（整合版）</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+        }
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1rem 1.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-2px);
+        }
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+        }
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        .analysis-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .info-item {
+            display: inline-block;
+            margin: 0.25rem 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        .integrated-section {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin-top: 1rem;
+        }
+        .statistics-section {
+            padding: 20px;
+        }
+
+        .statistics-section h4 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .statistics-section h5 {
+            color: #34495e;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .statistics-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .statistics-section ul li {
+            margin-bottom: 8px;
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255,255,255,0.8);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light:hover {
+            background-color: rgba(255,255,255,0.2);
+            border-color: white;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .statistics-section .alert {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .statistics-section .alert ul {
+            margin-bottom: 10px;
+        }
+
+        .statistics-section .btn-primary {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+
+        .statistics-section .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-10">
+            <h1 class="text-center mb-0">
+                <i class="fas fa-search me-3"></i>关键词排名查询工具（整合版）
+            </h1>
+            <p class="text-center mb-0 mt-2">提取关键词→查询排名→导出结果，一个界面完成所有操作</p>
+                </div>
+                <div class="col-md-2 text-end">
+                    <a href="/historical_results" class="btn btn-outline-light btn-lg" title="查看历史查询结果">
+                        <i class="fas fa-history me-2"></i>历史记录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 从分析结果提取关键词 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>从分析结果提取关键词
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="analysis-info-section">
+                    <div class="text-center">
+                        <button class="btn btn-primary" onclick="loadInitialAnalysisInfo()">
+                            <i class="fas fa-sync-alt me-2"></i>检查分析结果
+                        </button>
+                    </div>
+                </div>
+
+                <div id="analysis-info-display" style="display: none;">
+                    <!-- 报告选择区域 -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label">选择分析报告</label>
+                            <select class="form-select" id="analysis-select">
+                                <option value="">使用最新报告</option>
+                            </select>
+                            <small class="text-muted">可以选择特定的分析报告，或保持默认使用最新报告</small>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary" onclick="loadAnalysisReports()">
+                                <i class="fas fa-sync-alt"></i> 刷新报告
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>分析结果信息</h6>
+                        <div id="analysis-details">
+                            {% if analysis_info and analysis_info.has_analysis %}
+                                <div class="info-item"><strong>总UV:</strong> {{ "{:,}".format(analysis_info.total_uv) }}</div>
+                                <div class="info-item"><strong>总URL数:</strong> {{ "{:,}".format(analysis_info.total_urls) }}</div>
+                                <div class="info-item"><strong>类别:</strong> {{ analysis_info.category or '全部' }}</div>
+                                <div class="info-item"><strong>日期:</strong> {{ analysis_info.date_range or '未知' }}</div>
+                            {% else %}
+                                <div class="text-muted">{{ analysis_info.message if analysis_info else '暂无分析数据' }}</div>
+                            {% endif %}
+                        </div>
+                        <!-- 加载指示器 -->
+                        <div id="report-loading" class="text-center text-light mt-2" style="display: none;">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span class="ms-2">正在切换报告...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 过滤条件设置 -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-filter me-2"></i>过滤条件设置
+                                <button class="btn btn-sm btn-outline-light ms-2" onclick="loadFilterStatistics(true)">
+                                    <i class="fas fa-chart-bar me-1"></i>查看统计
+                                </button>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>下降量UV过滤</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">最小下降量</label>
+                                            <input type="number" class="form-control" id="min-decline-uv" 
+                                                   placeholder="例如: 1000" min="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">最大下降量</label>
+                                            <input type="number" class="form-control" id="max-decline-uv" 
+                                                   placeholder="例如: 50000" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>下降率过滤</h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label">最小下降率(%)</label>
+                                            <input type="number" class="form-control" id="min-decline-rate" 
+                                                   placeholder="例如: 60" min="0" max="100" step="0.1">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label">最大下降率(%)</label>
+                                            <input type="number" class="form-control" id="max-decline-rate" 
+                                                   placeholder="例如: 90" min="0" max="100" step="0.1">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-8">
+                                    <button class="btn btn-info btn-sm" onclick="previewFilter()">
+                                        <i class="fas fa-eye me-2"></i>预览过滤结果
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm ms-2" onclick="clearFilter()">
+                                        <i class="fas fa-times me-2"></i>清空条件
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <div id="filter-preview" class="text-end"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 统计信息模态框 -->
+                    <div class="modal fade" id="statisticsModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-chart-bar me-2"></i>过滤统计信息
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="statistics-content">
+                                        <div class="text-center">
+                                            <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="integrated-section">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" onclick="startExtractFromAnalysis()">
+                                    <i class="fas fa-download me-2"></i>提取全部关键词
+                                </button>
+                                <button class="btn btn-success ms-2" onclick="startExtractWithFilter()">
+                                    <i class="fas fa-filter me-2"></i>按条件提取关键词
+                                </button>
+                                <button class="btn btn-warning ms-2" onclick="cancelExtract()" id="cancel-extract-btn" style="display: none;">
+                                    <i class="fas fa-stop me-2"></i>取消提取
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <label class="form-label me-2 mb-0">并发线程数:</label>
+                                    <select class="form-select" id="max-workers" style="width: 100px;">
+                                        <option value="3">3线程</option>
+                                        <option value="5" selected>5线程</option>
+                                        <option value="8">8线程</option>
+                                        <option value="10">10线程</option>
+                                    </select>
+                                    <small class="text-muted ms-2">
+                                        <i class="fas fa-info-circle"></i> 线程越多速度越快
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 关键词提取进度 -->
+                <div id="extract-progress-section" style="display: none;">
+                    <div class="mt-3">
+                        <h6>关键词提取进度</h6>
+                        <div id="filter-info" class="mb-2" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span id="filter-info-text"></span>
+                            </div>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 id="extract-progress-bar" role="progressbar" style="width: 0%">
+                                <span id="extract-progress-text">0%</span>
+                            </div>
+                        </div>
+                        <div class="text-muted small">
+                            <span id="extract-status">准备中...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 统一的结果展示区域 -->
+                <div id="unified-results-section" style="display: none;">
+                    <div class="mt-3">
+                        <!-- 统计信息 -->
+                        <div id="extract-stats"></div>
+                        
+                        <!-- 查询结果统计表格 -->
+                        <div id="ranking-stats-table" class="card mt-3" style="display: none;">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-chart-bar me-2"></i>排名统计分析
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th rowspan="2" class="text-center align-middle">考种</th>
+                                                <th colspan="4" class="text-center">下降词数量区间统计</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-center">1-3名下降词</th>
+                                                <th class="text-center">4-7名下降词</th>
+                                                <th class="text-center">8-10名下降词</th>
+                                                <th class="text-center">10名以外下降词</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ranking-stats-tbody">
+                                            <!-- 动态生成的统计数据 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 历史排名结果加载 -->
+
+                        
+                        <!-- 排名查询设置 -->
+                        <div class="card mt-3" id="rank-query-integrated" style="display: none;">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-search me-2"></i>排名查询设置
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <!-- API配置信息 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">API配置</label>
+                                            <div class="alert alert-info mb-2">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                <strong>API Key配置:</strong> 请在 <code>api_keys.json</code> 文件中配置站长之家API Key
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="me-2">配置状态:</span>
+                                                <span id="api-status" class="badge bg-secondary">检查中...</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 查询优化设置 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">查询优化设置</label>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="enableCaching" checked>
+                                                        <label class="form-check-label" for="enableCaching">
+                                                            启用结果缓存（30分钟）
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="enableRetry" checked>
+                                                        <label class="form-check-label" for="enableRetry">
+                                                            失败自动重试（最多2次）
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">查询并发数</label>
+                                                    <select class="form-select" id="query-concurrent" style="width: 120px;">
+                                                        <option value="1">串行查询</option>
+                                                        <option value="2" selected>2个并发</option>
+                                                        <option value="3">3个并发</option>
+                                                    </select>
+                                            <div class="form-text">
+                                                        <small class="text-muted">并发数越高速度越快，但可能触发API限制</small>
+                                            </div>
+                                        </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <button class="btn btn-info btn-sm" type="button" id="checkApiQuota">
+                                                    <i class="fas fa-info-circle me-1"></i> 查询余量
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" type="button" id="resetUsageStats">
+                                                    <i class="fas fa-trash me-1"></i> 重置统计
+                                                </button>
+                                            </div>
+                                                </div>
+                                        
+                                        <!-- API使用统计 -->
+                                        <div class="mb-3">
+                                            <div class="card bg-light border-0">
+                                                <div class="card-body py-2">
+                                                    <h6 class="card-title mb-2">
+                                                        <i class="fas fa-chart-line me-2"></i>查询统计
+                                                    </h6>
+                                                    <div class="row text-center">
+                                                        <div class="col-3">
+                                                            <div class="text-primary fw-bold" id="cache-hit-rate">0%</div>
+                                                            <small class="text-muted">缓存命中率</small>
+                                            </div>
+                                                        <div class="col-3">
+                                                            <div class="text-success fw-bold" id="api-calls-saved">0</div>
+                                                            <small class="text-muted">节省调用</small>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-info fw-bold" id="avg-response-time">0ms</div>
+                                                            <small class="text-muted">平均响应</small>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-warning fw-bold" id="current-qps">0/分钟</div>
+                                                            <small class="text-muted">当前频率</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">&nbsp;</label>
+                                            <div>
+                                                <button class="btn btn-primary" onclick="startIntegratedRankQuery()">
+                                                    <i class="fas fa-play me-2"></i>开始查询排名
+                                                </button>
+                                                <button class="btn btn-warning ms-2" onclick="cancelQuery()" id="cancel-query-integrated-btn" style="display: none;">
+                                                    <i class="fas fa-stop me-2"></i>取消查询
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 查询进度 -->
+                        <div id="query-progress-integrated" style="display: none;">
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>排名查询进度
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             id="query-progress-bar-integrated" role="progressbar" style="width: 0%">
+                                            <span id="query-progress-text-integrated">0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <span id="query-status-integrated">准备中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <button class="btn btn-success btn-sm" onclick="exportKeywords()">
+                                    <i class="fas fa-file-excel me-2"></i>导出关键词
+                                </button>
+                                <button class="btn btn-primary btn-sm ms-2" onclick="showIntegratedRankQuery()" id="show-query-btn" style="display: none;">
+                                    <i class="fas fa-search me-2"></i>查询排名
+                                </button>
+                                <button class="btn btn-info btn-sm ms-2" onclick="exportResults()" id="export-results-btn" style="display: none;">
+                                    <i class="fas fa-file-excel me-2"></i>导出查询结果
+                                </button>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary" id="table-type-badge">数据表格</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 统一的结果表格 -->
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr id="table-header-keywords">
+                                        <th>序号</th>
+                                        <th>ID</th>
+                                        <th>URL</th>
+                                        <th>提取的关键词</th>
+                                        <th>页面标题</th>
+                                        <th>域名</th>
+                                        <th>最终关键词</th>
+                                        <th>状态</th>
+                                        <th>去年UV</th>
+                                        <th>下降流量</th>
+                                    </tr>
+                                    <tr id="table-header-results" style="display: none;">
+                                        <th>序号</th>
+                                        <th>URL</th>
+                                        <th>关键词</th>
+                                        <th>域名</th>
+                                        <th>百度排名</th>
+                                        <th>收录量</th>
+                                        <th>流量信息</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="unified-results-table">
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- 隐藏数据存储 -->
+                        <div id="extract-results-data" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 手动输入URL -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>手动输入URL查询
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">URL列表</label>
+                            <textarea class="form-control" id="manual-urls" rows="5" 
+                                      placeholder="请输入URL，每行一个"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="alert alert-sm alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                API Key已从配置文件自动加载
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-primary" onclick="startManualQuery()">
+                                    <i class="fas fa-search me-2"></i>查询排名
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 报告详情模态框 -->
+        <div class="modal fade" id="reportDetailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">报告详情</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="reportDetails">
+                            <!-- 报告详情将通过JavaScript动态加载 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        function loadReportDetails(timestamp) {
+            fetch(`/rank/api/get_report_info/${timestamp}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const report = data.report;
+                        let html = `
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>基本信息</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td>总UV：</td>
+                                            <td>${report.total_uv}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>总URL数：</td>
+                                            <td>${report.total_urls}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>分类：</td>
+                                            <td>${report.category}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>日期范围：</td>
+                                            <td>${report.date_range}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                        document.getElementById('reportDetails').innerHTML = html;
+                        new bootstrap.Modal(document.getElementById('reportDetailsModal')).show();
+                    } else {
+                        alert('获取报告详情失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('获取报告详情失败');
+                });
+        }
+        </script>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let currentExtractSessionId = null;
+        let currentQuerySessionId = null;
+        let progressInterval = null;
+        
+        // 页面初始化 - 合并所有初始化逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面初始化开始...');
+            
+            // 添加错误和加载提示元素
+            const container = document.querySelector('.container') || document.querySelector('body');
+            if (!document.getElementById('error-message')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'error-message';
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.style.display = 'none';
+                container.prepend(errorDiv);
+            }
+            if (!document.getElementById('loading-message')) {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loading-message';
+                loadingDiv.className = 'alert alert-info';
+                loadingDiv.style.display = 'none';
+                container.prepend(loadingDiv);
+            }
+            
+            // 基础配置加载
+            loadConfigInfo();
+            // loadInitialAnalysisInfo(); // 移除：改用服务器端渲染
+            loadAnalysisReports(); // 加载分析报告列表
+            
+            // 绑定报告选择变化事件
+            const analysisSelect = document.getElementById('analysis-select');
+            if (analysisSelect) {
+                analysisSelect.addEventListener('change', handleReportChange);
+            }
+            
+            // 启动定时更新缓存统计
+            console.log('启动定时更新缓存统计...');
+            updateCacheStats();
+            setInterval(function() {
+                console.log('定时更新缓存统计...');
+                updateCacheStats();
+            }, 5000); // 每5秒更新一次
+            
+            console.log('页面初始化完成');
+        });
+
+        // 加载配置信息
+        function loadConfigInfo() {
+            fetch('/rank/api/get_config')
+                .then(response => response.json())
+                .then(data => {
+                    // 更新API状态显示
+                    const statusElement = document.getElementById('api-status');
+                    if (data.has_api_key) {
+                        statusElement.className = 'badge bg-success';
+                        statusElement.textContent = '已配置';
+                    } else {
+                        statusElement.className = 'badge bg-warning';
+                        statusElement.textContent = '未配置';
+                    }
+                    
+                    // 显示API使用信息
+                    if (data.usage_info) {
+                        updateApiUsageInfo(data.usage_info);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取配置信息失败:', error);
+                    const statusElement = document.getElementById('api-status');
+                    statusElement.className = 'badge bg-danger';
+                    statusElement.textContent = '检查失败';
+                });
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            if (!errorDiv) {
+                const div = document.createElement('div');
+                div.id = 'error-message';
+                div.className = 'alert alert-danger';
+                div.style.display = 'none';
+                // 查找合适的位置插入错误提示
+                const container = document.querySelector('.container') || document.querySelector('body');
+                container.prepend(div);
+            }
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // 显示加载提示
+        function showLoading(message = '加载中...') {
+            const loadingDiv = document.getElementById('loading-message');
+            if (!loadingDiv) {
+                const div = document.createElement('div');
+                div.id = 'loading-message';
+                div.className = 'alert alert-info';
+                div.style.display = 'none';
+                // 查找合适的位置插入加载提示
+                const container = document.querySelector('.container') || document.querySelector('body');
+                container.prepend(div);
+            }
+            loadingDiv.textContent = message;
+            loadingDiv.style.display = 'block';
+        }
+
+        // 隐藏加载提示
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loading-message');
+            if (loadingDiv) {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // 加载分析报告列表
+        function loadAnalysisReports() {
+            const select = document.getElementById('analysis-select');
+            select.disabled = true;
+            showLoading('正在加载报告列表...');
+            
+            fetch('/rank/api/get_all_reports')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showError('获取报告列表失败: ' + (data.error || '未知错误'));
+                    return;
+                }
+                
+                // 清空现有选项
+                select.innerHTML = '<option value="">使用最新报告</option>';
+                
+                if (!data.reports || data.reports.length === 0) {
+                    showError('没有可用的分析报告');
+                    return;
+                }
+                
+                // 添加报告选项
+                data.reports.forEach(report => {
+                    const option = document.createElement('option');
+                    option.value = report.timestamp;
+                    option.textContent = `${report.display_time} (${report.file_size}MB)`;
+                    select.appendChild(option);
+                });
+                
+                console.log('下拉框选项已更新，共', data.reports.length, '个选项');
+                console.log('下拉框当前值:', select.value);
+                console.log('下拉框是否禁用:', select.disabled);
+                
+                // 自动选择第一个报告
+                if (data.reports.length > 0) {
+                    // 先设置为空值（使用最新报告），这样handleReportChange会正确处理
+                    select.value = '';
+                    console.log('初始化时选择使用最新报告');
+                    handleReportChange();
+                }
+            })
+            .catch(error => {
+                showError('获取报告列表失败: ' + error.message);
+                console.error('获取报告列表失败:', error);
+            })
+            .finally(() => {
+                select.disabled = false;
+                hideLoading();
+                console.log('下拉框已启用，当前值:', select.value);
+            });
+        }
+
+        // 加载报告数据
+        function loadReportData(timestamp) {
+            if (!timestamp) return;
+            
+            showLoading('正在加载报告数据...');
+            
+            fetch(`/rank/api/get_report_info/${timestamp}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showError('获取报告数据失败: ' + (data.error || '未知错误'));
+                    return;
+                }
+                
+                const report = data.report;
+                if (!report) {
+                    showError('报告数据为空');
+                    return;
+                }
+                
+                // 更新页面显示
+                document.getElementById('analysis-details').innerHTML = `
+                    <div class="info-item"><strong>总UV:</strong> ${report.total_uv.toLocaleString()}</div>
+                    <div class="info-item"><strong>总URL数:</strong> ${report.total_urls.toLocaleString()}</div>
+                    <div class="info-item"><strong>类别:</strong> ${report.category || '全部'}</div>
+                    <div class="info-item"><strong>日期范围:</strong> ${report.date_range || '未知'}</div>
+                `;
+                
+                // 更新过滤条件
+                if (report.filter_stats) {
+                    document.getElementById('min-decline-uv').value = Math.round(report.filter_stats.decline_amount.avg * 0.5);
+                    document.getElementById('max-decline-uv').value = Math.round(report.filter_stats.decline_amount.avg * 2);
+                    document.getElementById('min-decline-rate').value = Math.round(report.filter_stats.decline_rate.avg * 0.8);
+                    document.getElementById('max-decline-rate').value = Math.round(report.filter_stats.decline_rate.avg * 1.2);
+                    
+                    // 预览过滤结果
+                    previewFilter();
+                }
+            })
+            .catch(error => {
+                showError('获取报告数据失败: ' + error.message);
+                console.error('获取报告数据失败:', error);
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
+        // 第二个监听器的逻辑已合并到主监听器中
+
+        // 加载分析结果信息（初始化用）
+        function loadInitialAnalysisInfo() {
+            fetch('/rank/api/get_analysis_info')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.has_analysis) {
+                        document.getElementById('analysis-info-display').style.display = 'block';
+                        document.getElementById('analysis-info-section').style.display = 'none';
+                        
+                        // 注意：这里显示的是默认分析信息，不需要立即更新detailsHtml
+                        // 因为loadAnalysisReports()会调用handleReportChange()来更新正确的报告信息
+                        
+                        // 初始化报告列表，这会触发正确的报告信息更新
+                        loadAnalysisReports();
+                } else {
+                        alert('没有找到分析结果: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取分析信息失败:', error);
+                    alert('获取分析信息失败');
+                });
+        }
+
+        // 刷新报告列表
+        function refreshReportsList() {
+            fetch('/rank/api/get_all_reports')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateReportsDropdown(data.reports);
+                    // 如果是第一次加载，自动选择最新报告
+                    const select = document.getElementById('analysis-select');
+                    if (select.value === '') {
+                        loadLatestReportInfo();
+                    }
+                } else {
+                    console.error('刷新报告列表失败:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('刷新报告列表失败:', error);
+            });
+        }
+
+        // 更新报告下拉框
+        function updateReportsDropdown(reports) {
+            const select = document.getElementById('analysis-select');
+            
+            // 清空现有选项（保留默认选项）
+            select.innerHTML = '<option value="">使用最新报告</option>';
+            
+            // 添加报告选项
+            reports.forEach(report => {
+                const option = document.createElement('option');
+                option.value = report.timestamp;
+                option.textContent = `${report.display_time} (${report.file_size}MB)`;
+                select.appendChild(option);
+            });
+        }
+
+        // 显示/隐藏报告加载状态
+        function showReportLoading(show) {
+            const loadingDiv = document.getElementById('report-loading');
+            const detailsDiv = document.getElementById('analysis-details');
+            
+            if (show) {
+                loadingDiv.style.display = 'block';
+                detailsDiv.style.opacity = '0.5';
+            } else {
+                loadingDiv.style.display = 'none';
+                detailsDiv.style.opacity = '1';
+            }
+        }
+
+        // 处理报告切换
+        function handleReportChange() {
+            const select = document.getElementById('analysis-select');
+            const selectedValue = select.value;
+            
+            console.log('报告切换:', selectedValue);
+            
+            if (selectedValue === '') {
+                console.log('未选择报告');
+                return;
+            }
+            
+            // 显示加载状态
+            showReportLoading(true);
+            
+            if (selectedValue === 'latest') {
+                // 直接调用简化的分析信息API
+                console.log('切换到最新报告');
+                loadAnalysisInfo().finally(() => {
+                    showReportLoading(false);
+                });
+            } else {
+                // 调用指定时间戳的分析信息API
+                console.log('切换到指定报告:', selectedValue);
+                loadAnalysisInfo(selectedValue).finally(() => {
+                    showReportLoading(false);
+                });
+            }
+        }
+
+        // 加载分析信息（支持指定时间戳或最新）
+        function loadAnalysisInfo(timestamp = null) {
+            const url = timestamp ? 
+                `/rank/api/get_analysis_info?timestamp=${timestamp}` : 
+                '/rank/api/get_analysis_info';
+            
+            console.log('开始加载分析信息...', timestamp ? `时间戳: ${timestamp}` : '最新');
+            
+            fetch(url)
+                .then(response => {
+                    console.log('分析信息API响应状态:', response.status);
+                    return response.json();
+                })
+            .then(data => {
+                    console.log('分析信息API响应数据:', data);
+                if (data.has_analysis) {
+                        // 更新分析结果信息（简化版）
+                        const detailsHtml = `
+                            <div class="info-item"><strong>总UV:</strong> ${data.total_uv.toLocaleString()}</div>
+                            <div class="info-item"><strong>总URL数:</strong> ${data.total_urls.toLocaleString()}</div>
+                            <div class="info-item"><strong>类别:</strong> ${data.category || '全部'}</div>
+                            <div class="info-item"><strong>日期:</strong> ${data.date_range || '未知'}</div>
+                        `;
+                        document.getElementById('analysis-details').innerHTML = detailsHtml;
+                        
+                        // 更新过滤条件后再隐藏加载状态
+                        loadFilterStatistics(false).finally(() => {
+                            console.log('分析信息加载完成，隐藏加载状态');
+                            showReportLoading(false);
+                        });
+                    } else {
+                        console.log('没有分析数据，隐藏加载状态');
+                        showReportLoading(false);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取分析信息失败:', error);
+                    showReportLoading(false);
+                });
+        }
+
+        // 加载最新报告信息（保持向后兼容）
+        function loadLatestReportInfo() {
+            loadAnalysisInfo(); // 调用新的通用函数，不传timestamp参数即为最新
+        }
+
+        // 加载过滤统计信息（不自动显示模态框）
+        async function loadFilterStatistics(showModal = false) {
+            try {
+                console.log('开始加载过滤统计信息，showModal:', showModal);
+                // 获取当前选择的报告
+                const selectedReport = document.getElementById('analysis-select').value;  // 修正ID
+                const url = selectedReport ? 
+                    `/rank/api/get_filter_statistics?timestamp=${selectedReport}` : 
+                    '/rank/api/get_filter_statistics';
+                    
+                console.log('请求统计信息URL:', url);
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                    if (data.error) {
+                    if (showModal) {
+                        alert('获取统计信息失败: ' + data.error);
+                    } else {
+                        console.warn('获取统计信息失败:', data.error);
+                    }
+                    return Promise.resolve(); // 确保返回resolved promise
+                    }
+                    
+                // 保存统计数据到模态框元素中，以便后续使用
+                const modalElement = document.getElementById('statisticsModal');
+                if (modalElement) {
+                    modalElement.__stats = data.stats;
+                }
+                
+                // 只有明确要求时才显示模态框
+                if (showModal) {
+                // 显示统计信息
+                    displayStatistics(data);
+                
+                // 显示模态框
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
+                
+                console.log('过滤统计信息加载完成');
+                return Promise.resolve(); // 确保返回resolved promise
+            } catch (error) {
+                console.error('加载过滤统计信息失败:', error);
+                if (showModal) {
+                    alert('获取统计信息失败');
+                }
+                return Promise.resolve(); // 即使出错也要返回resolved promise
+            }
+        }
+
+        // 显示统计信息
+        function displayStatistics(data) {
+            const content = document.getElementById('statistics-content');
+            const stats = data.stats;
+            
+            let html = `
+                <div class="statistics-section">
+                    <h4>基本统计</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                            <p><strong>总数量：</strong>${stats.total_count.toLocaleString()}</p>
+                            <h5>下降量统计</h5>
+                            <ul>
+                                <li>最小值：${stats.decline_amount.min.toLocaleString()}</li>
+                                <li>最大值：${stats.decline_amount.max.toLocaleString()}</li>
+                                <li>平均值：${Math.round(stats.decline_amount.avg).toLocaleString()}</li>
+                                <li>中位数：${stats.decline_amount.median.toLocaleString()}</li>
+                            </ul>
+                                </div>
+                    <div class="col-md-6">
+                            <h5>下降率统计</h5>
+                            <ul>
+                                <li>最小值：${stats.decline_rate.min.toFixed(1)}%</li>
+                                <li>最大值：${stats.decline_rate.max.toFixed(1)}%</li>
+                                <li>平均值：${stats.decline_rate.avg.toFixed(1)}%</li>
+                                <li>中位数：${stats.decline_rate.median.toFixed(1)}%</li>
+                            </ul>
+                    </div>
+                </div>
+                
+                    <h4>建议的过滤条件</h4>
+                    <div class="alert alert-info">
+                        <p><strong>下降量UV建议范围：</strong></p>
+                        <ul>
+                            <li>最小值：${Math.round(stats.decline_amount.avg * 0.5).toLocaleString()}</li>
+                            <li>最大值：${Math.round(stats.decline_amount.avg * 2).toLocaleString()}</li>
+                        </ul>
+                        <p><strong>下降率建议范围：</strong></p>
+                        <ul>
+                            <li>最小值：${Math.round(stats.decline_rate.avg * 0.8).toFixed(1)}%</li>
+                            <li>最大值：${Math.round(stats.decline_rate.avg * 1.2).toFixed(1)}%</li>
+                    </ul>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-primary" onclick="applyRecommendedFilters()">
+                            应用建议的过滤条件
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+        }
+
+        // 应用建议的过滤条件
+        function applyRecommendedFilters() {
+            const stats = document.getElementById('statisticsModal').__stats;
+            if (!stats) return;
+            
+            // 设置过滤条件
+            document.getElementById('min-decline-uv').value = Math.round(stats.decline_amount.avg * 0.5);
+            document.getElementById('max-decline-uv').value = Math.round(stats.decline_amount.avg * 2);
+            document.getElementById('min-decline-rate').value = Math.round(stats.decline_rate.avg * 0.8);
+            document.getElementById('max-decline-rate').value = Math.round(stats.decline_rate.avg * 1.2);
+            
+            // 关闭模态框
+            bootstrap.Modal.getInstance(document.getElementById('statisticsModal')).hide();
+            
+            // 预览新的过滤结果
+            previewFilter();
+        }
+
+        // 预览过滤结果
+        async function previewFilter() {
+            const selectedReport = document.getElementById('analysis-select').value;
+            const filterData = {
+                min_decline_uv: document.getElementById('min-decline-uv').value,
+                max_decline_uv: document.getElementById('max-decline-uv').value,
+                min_decline_rate: document.getElementById('min-decline-rate').value,
+                max_decline_rate: document.getElementById('max-decline-rate').value,
+                timestamp: selectedReport
+            };
+            
+            try {
+                const response = await fetch('/rank/api/preview_filter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(filterData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('预览失败: ' + data.error);
+                    return;
+                }
+                
+                const previewDiv = document.getElementById('filter-preview');
+                if (data.filtered_count > 0) {
+                    previewDiv.innerHTML = `
+                        <div class="text-success">
+                            <i class="fas fa-check-circle me-1"></i>
+                            <strong>筛选结果: ${data.filtered_count.toLocaleString()} 个</strong>
+                        </div>
+                        <div class="small text-muted">
+                            下降量: ${data.decline_amount_range.min.toLocaleString()} - ${data.decline_amount_range.max.toLocaleString()}<br>
+                            下降率: ${data.decline_rate_range.min.toFixed(1)}% - ${data.decline_rate_range.max.toFixed(1)}%
+                        </div>
+                    `;
+                } else {
+                    previewDiv.innerHTML = `
+                        <div class="text-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>无符合条件的数据</strong>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('预览失败');
+            }
+        }
+
+        // 清空过滤条件
+        function clearFilter() {
+            document.getElementById('min-decline-uv').value = '';
+            document.getElementById('max-decline-uv').value = '';
+            document.getElementById('min-decline-rate').value = '';
+            document.getElementById('max-decline-rate').value = '';
+            document.getElementById('filter-preview').innerHTML = '';
+        }
+
+        // 开始按条件提取关键词
+        async function startExtractWithFilter() {
+            const selectedReport = document.getElementById('analysis-select').value;
+            const filterData = {
+                min_decline_uv: document.getElementById('min-decline-uv').value,
+                max_decline_uv: document.getElementById('max-decline-uv').value,
+                min_decline_rate: document.getElementById('min-decline-rate').value,
+                max_decline_rate: document.getElementById('max-decline-rate').value,
+                max_workers: parseInt(document.getElementById('max-workers').value),
+                timestamp: selectedReport
+            };
+            
+            // 检查是否设置了过滤条件
+            const hasFilter = filterData.min_decline_uv || filterData.max_decline_uv || 
+                             filterData.min_decline_rate || filterData.max_decline_rate;
+            
+            if (!hasFilter) {
+                if (!confirm('没有设置过滤条件，将提取所有关键词。是否继续？')) {
+                    return;
+                }
+                // 如果没有过滤条件，使用原来的方法
+                startExtractFromAnalysis();
+                return;
+            }
+            
+            try {
+                const response = await fetch('/rank/api/extract_with_filter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(filterData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('错误: ' + data.error);
+                    return;
+                }
+                
+                    currentExtractSessionId = data.session_id;
+                    document.getElementById('extract-progress-section').style.display = 'block';
+                    document.getElementById('cancel-extract-btn').style.display = 'inline-block';
+                    
+                    // 显示过滤条件信息
+                    const filterInfo = document.getElementById('filter-info');
+                    const filterInfoText = document.getElementById('filter-info-text');
+                    let filterText = `多线程提取（${data.max_workers || 'N/A'}线程）| 过滤条件: `;
+                    let conditions = [];
+                    
+                    if (data.filter_conditions.min_decline_uv) {
+                        conditions.push(`下降量 ≥ ${data.filter_conditions.min_decline_uv.toLocaleString()}`);
+                    }
+                    if (data.filter_conditions.max_decline_uv) {
+                        conditions.push(`下降量 ≤ ${data.filter_conditions.max_decline_uv.toLocaleString()}`);
+                    }
+                    if (data.filter_conditions.min_decline_rate) {
+                        conditions.push(`下降率 ≥ ${data.filter_conditions.min_decline_rate}%`);
+                    }
+                    if (data.filter_conditions.max_decline_rate) {
+                        conditions.push(`下降率 ≤ ${data.filter_conditions.max_decline_rate}%`);
+                    }
+                    
+                    filterText += conditions.join(', ') + ` | 共 ${data.total_urls.toLocaleString()} 个URL`;
+                    filterInfoText.textContent = filterText;
+                    filterInfo.style.display = 'block';
+                    
+                    // 开始监控进度
+                    monitorExtractProgress();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('启动提取失败');
+            }
+        }
+
+        // 开始提取关键词
+        function startExtractFromAnalysis() {
+            const maxWorkers = parseInt(document.getElementById('max-workers').value);
+            
+            // 获取选中的报告时间戳
+            const selectedReport = document.getElementById('analysis-select').value;
+            
+            const requestData = {
+                max_workers: maxWorkers,
+                timestamp: selectedReport
+            };
+            
+            fetch('/rank/api/extract_from_analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('错误: ' + data.error);
+                } else {
+                    currentExtractSessionId = data.session_id;
+                    document.getElementById('extract-progress-section').style.display = 'block';
+                    document.getElementById('cancel-extract-btn').style.display = 'inline-block';
+                    
+                    // 开始监控进度
+                    monitorExtractProgress();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('启动关键词提取失败');
+            });
+        }
+
+        // 监控关键词提取进度
+        function monitorExtractProgress() {
+            if (!currentExtractSessionId) return;
+            
+            fetch(`/api/extract_progress/${currentExtractSessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('获取进度失败:', data.error);
+                        return;
+                    }
+                    
+                    const progressBar = document.getElementById('extract-progress-bar');
+                    const progressText = document.getElementById('extract-progress-text');
+                    const statusElement = document.getElementById('extract-status');
+                    
+                    const progress = data.progress_percent || 0;
+                    const completed = data.completed || 0;
+                    const total = data.total || 0;
+                    const status = data.status || 'unknown';
+                    
+                    // 更新进度条
+                    progressBar.style.width = progress + '%';
+                    progressText.textContent = `${progress}% (${completed}/${total})`;
+                    
+                    // 更新状态
+                    let statusText = '';
+                    switch(status) {
+                        case 'starting':
+                            statusText = '正在启动...';
+                            break;
+                        case 'extracting':
+                            statusText = `正在提取关键词... (${completed}/${total})`;
+                            break;
+                        case 'finished':
+                            statusText = '✅ 提取完成！';
+                            document.getElementById('cancel-extract-btn').style.display = 'none';
+                            displayExtractResults();
+                            break;
+                        case 'cancelled':
+                            statusText = '❌ 已取消';
+                            document.getElementById('cancel-extract-btn').style.display = 'none';
+                            break;
+                        case 'error':
+                            statusText = '❌ 提取失败: ' + (data.error || '未知错误');
+                            document.getElementById('cancel-extract-btn').style.display = 'none';
+                            break;
+                        default:
+                            statusText = '状态未知';
+                    }
+                    
+                    statusElement.textContent = statusText;
+                    
+                    // 如果还在进行中，继续监控
+                    if (status === 'extracting' || status === 'starting') {
+                        setTimeout(monitorExtractProgress, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取进度失败:', error);
+                    setTimeout(monitorExtractProgress, 2000);
+                });
+        }
+
+        // 显示关键词提取结果
+        function displayExtractResults() {
+            if (!currentExtractSessionId) return;
+            
+            fetch(`/get_extract_results/${currentExtractSessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('获取结果失败: ' + data.error);
+                        return;
+                    }
+                    
+                    const results = data.results || [];
+                    const successCount = results.filter(r => r.status === '成功').length;
+                    const titleCount = results.filter(r => r.status === '使用标题').length;
+                    const failedCount = results.filter(r => r.status === '失败').length;
+                    
+                    const statsHtml = `
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle me-2"></i>关键词提取完成</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>总计:</strong> ${results.length} 个
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>成功:</strong> <span class="text-success">${successCount}</span> 个
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>使用标题:</strong> <span class="text-warning">${titleCount}</span> 个
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>失败:</strong> <span class="text-danger">${failedCount}</span> 个
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('extract-stats').innerHTML = statsHtml;
+                    displayKeywordsTable(results);
+                    
+                    // 将结果存储到隐藏的div中
+                    document.getElementById('extract-results-data').textContent = JSON.stringify(results);
+                    
+                    // 显示结果区域
+                    document.getElementById('unified-results-section').style.display = 'block';
+                    document.getElementById('show-query-btn').style.display = 'inline-block';
+                    document.getElementById('table-type-badge').textContent = '关键词列表';
+                    document.getElementById('table-type-badge').className = 'badge bg-secondary';
+                })
+                .catch(error => {
+                    console.error('获取结果失败:', error);
+                    alert('获取结果失败: ' + error.message);
+                });
+        }
+
+        // 显示关键词表格
+        function displayKeywordsTable(results) {
+            const tbody = document.getElementById('unified-results-table');
+            tbody.innerHTML = '';
+            
+            // 显示关键词表头
+            document.getElementById('table-header-keywords').style.display = '';
+            document.getElementById('table-header-results').style.display = 'none';
+            
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                
+                let statusClass = '';
+                let statusText = '';
+                
+                switch (result.status) {
+                    case '成功':
+                        statusClass = 'text-success';
+                        statusText = '成功';
+                        break;
+                    case '使用标题':
+                        statusClass = 'text-warning';
+                        statusText = '使用标题';
+                        break;
+                    case '无关键词':
+                        statusClass = 'text-info';
+                        statusText = '无关键词';
+                        break;
+                    case '失败':
+                        statusClass = 'text-danger';
+                        statusText = '失败';
+                        break;
+                    default:
+                        statusClass = 'text-secondary';
+                        statusText = result.status || '未知';
+                }
+                
+                row.innerHTML = `
+                    <td>${result.index}</td>
+                    <td>${result.id || '-'}</td>
+                    <td><a href="${result.url}" target="_blank" class="text-decoration-none">${result.url.substring(0, 40)}...</a></td>
+                    <td>${result.keywords || '-'}</td>
+                    <td>${result.title || '-'}</td>
+                    <td>${result.domain}</td>
+                    <td>${result.final_keyword || '-'}</td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>${result.previous_uv?.toLocaleString() || 'N/A'}</td>
+                    <td>${result.decline_amount?.toLocaleString() || 'N/A'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 显示排名查询表单
+        function showIntegratedRankQuery() {
+            document.getElementById('rank-query-integrated').style.display = 'block';
+            document.getElementById('show-query-btn').style.display = 'none';
+            
+            // 加载API配置状态
+            loadConfigInfo();
+        }
+
+        // 开始排名查询
+        function startIntegratedRankQuery() {
+            const extractResults = document.getElementById('extract-results-data');
+            
+            if (!extractResults || !extractResults.textContent) {
+                alert('请先完成关键词提取');
+                return;
+            }
+            
+            let extractData;
+            try {
+                extractData = JSON.parse(extractResults.textContent);
+            } catch (e) {
+                alert('关键词提取数据格式错误');
+                return;
+            }
+            
+            if (!extractData || extractData.length === 0) {
+                alert('没有可查询的关键词数据');
+                return;
+            }
+            
+            // 准备查询数据
+            const queryData = {
+                extract_results: extractData
+            };
+            
+            // 开始查询
+            fetch('/query_by_keywords', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(queryData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('错误: ' + data.error);
+                } else {
+                    currentQuerySessionId = data.session_id;
+                    document.getElementById('query-progress-integrated').style.display = 'block';
+                    document.getElementById('cancel-query-integrated-btn').style.display = 'inline-block';
+                    
+                    // 开始监控进度
+                    monitorIntegratedQueryProgress();
+                }
+            })
+            .catch(error => {
+                console.error('启动排名查询失败:', error);
+                alert('启动失败：网络错误');
+            });
+        }
+
+        // 监控排名查询进度
+        function monitorIntegratedQueryProgress() {
+            if (!currentQuerySessionId) return;
+            
+            fetch(`/api/query_progress/${currentQuerySessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('query-status-integrated').textContent = '错误: ' + data.error;
+                        return;
+                    }
+                    
+                    const progressBar = document.getElementById('query-progress-bar-integrated');
+                    const progressText = document.getElementById('query-progress-text-integrated');
+                    const statusText = document.getElementById('query-status-integrated');
+                    
+                    progressBar.style.width = data.progress_percent + '%';
+                    progressText.textContent = data.progress_percent + '%';
+                    statusText.textContent = `${data.status} (${data.completed}/${data.total})`;
+                    
+                    if (data.status === 'finished') {
+                        loadIntegratedQueryResults();
+                        document.getElementById('cancel-query-integrated-btn').style.display = 'none';
+                        document.getElementById('query-progress-integrated').style.display = 'none';
+                    } else if (data.status === 'cancelled' || data.status === 'error') {
+                        document.getElementById('cancel-query-integrated-btn').style.display = 'none';
+                        document.getElementById('query-progress-integrated').style.display = 'none';
+                        document.getElementById('show-query-btn').style.display = 'inline-block';
+                    } else {
+                        setTimeout(monitorIntegratedQueryProgress, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setTimeout(monitorIntegratedQueryProgress, 2000);
+                });
+        }
+
+        // 加载查询结果
+        function loadIntegratedQueryResults() {
+            if (!currentQuerySessionId) return;
+            
+            fetch(`/get_query_results/${currentQuerySessionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('获取查询结果失败: ' + data.error);
+                        return;
+                    }
+                    
+                    if (data.status === 'finished') {
+                        displayRankingTable(data.results);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('获取查询结果失败');
+                });
+        }
+
+        // 证书类型映射
+        const EXAM_TYPE_MAPPING = {
+            'cjks': '初级',
+            'zjzcgl': '中级', 
+            'zckjs': '注会',
+            'shuiwushi': '税务师',
+            'zjjs': '中级经济师',
+            'cma': 'CMA',
+            'acca': 'ACCA',
+            'scjy': '实操就业'
+        };
+
+        // 根据URL识别证书类型
+        function identifyExamType(results) {
+            if (!results || results.length === 0) {
+                return '未知';
+            }
+            
+            // 统计各种证书类型出现的次数
+            const examTypeCount = {};
+            
+            results.forEach(result => {
+                if (result.url) {
+                    const url = result.url.toLowerCase();
+                    for (const [key, name] of Object.entries(EXAM_TYPE_MAPPING)) {
+                        if (url.includes(key)) {
+                            examTypeCount[name] = (examTypeCount[name] || 0) + 1;
+                            break; // 找到匹配就跳出循环
+                        }
+                    }
+                }
+            });
+            
+            // 返回出现次数最多的证书类型，如果没有找到则返回"全部"
+            let maxCount = 0;
+            let primaryExamType = '全部';
+            
+            for (const [type, count] of Object.entries(examTypeCount)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    primaryExamType = type;
+                }
+            }
+            
+            return primaryExamType;
+        }
+
+        // 生成排名统计表格
+        function generateRankingStatsTable(results) {
+            // 调试：输出前几个结果的排名数据格式
+            console.log('排名数据调试:', results.slice(0, 5).map(r => ({
+                rank: r.rank,
+                rankType: typeof r.rank,
+                uv: r.previous_uv
+            })));
+            
+            // 按考种分类统计
+            const examTypeStats = {};
+            
+            // 初始化各考种统计
+            Object.entries(EXAM_TYPE_MAPPING).forEach(([key, name]) => {
+                examTypeStats[name] = {
+                    range_1_3: { count: 0, uv: 0 },      // 1-3名
+                    range_4_7: { count: 0, uv: 0 },      // 4-7名
+                    range_8_10: { count: 0, uv: 0 },     // 8-10名
+                    range_10_plus: { count: 0, uv: 0 },  // 10名以外
+                    total: { count: 0, uv: 0 }
+                };
+            });
+            
+            results.forEach(result => {
+                if (result.rank) {
+                    let actualRank = 0;
+                    const uv = result.previous_uv || 0;
+                    
+                    // 处理不同格式的排名数据
+                    if (typeof result.rank === 'string') {
+                        // 处理 "1-1" 格式（页数-位置）
+                        if (result.rank.includes('-')) {
+                            const parts = result.rank.split('-');
+                            if (parts.length === 2) {
+                                const page = parseInt(parts[0]);
+                                const position = parseInt(parts[1]);
+                                if (!isNaN(page) && !isNaN(position)) {
+                                    actualRank = (page - 1) * 10 + position; // 假设每页10个结果
+                                }
+                            }
+                        } else {
+                            // 处理纯数字字符串
+                            actualRank = parseInt(result.rank);
+                        }
+                    } else if (typeof result.rank === 'number') {
+                        actualRank = result.rank;
+                    }
+                    
+                    // 识别该URL的考种
+                    const url = result.url ? result.url.toLowerCase() : '';
+                    let examTypeName = null;
+                    
+                    for (const [key, name] of Object.entries(EXAM_TYPE_MAPPING)) {
+                        if (url.includes(key)) {
+                            examTypeName = name;
+                            break;
+                        }
+                    }
+                    
+                    // 只统计有效排名且能识别考种的数据
+                    if (actualRank > 0 && examTypeName && examTypeStats[examTypeName]) {
+                        examTypeStats[examTypeName].total.count++;
+                        examTypeStats[examTypeName].total.uv += uv;
+                        
+                        if (actualRank >= 1 && actualRank <= 3) {
+                            examTypeStats[examTypeName].range_1_3.count++;
+                            examTypeStats[examTypeName].range_1_3.uv += uv;
+                        } else if (actualRank >= 4 && actualRank <= 7) {
+                            examTypeStats[examTypeName].range_4_7.count++;
+                            examTypeStats[examTypeName].range_4_7.uv += uv;
+                        } else if (actualRank >= 8 && actualRank <= 10) {
+                            examTypeStats[examTypeName].range_8_10.count++;
+                            examTypeStats[examTypeName].range_8_10.uv += uv;
+                        } else if (actualRank > 10) {
+                            examTypeStats[examTypeName].range_10_plus.count++;
+                            examTypeStats[examTypeName].range_10_plus.uv += uv;
+                        }
+                    }
+                }
+            });
+            
+            // 生成表格HTML - 显示所有有数据的考种
+            const tbody = document.getElementById('ranking-stats-tbody');
+            let tableHTML = '';
+            
+            // 过滤出有数据的考种
+            const examTypesWithData = Object.entries(examTypeStats).filter(([name, stats]) => stats.total.count > 0);
+            
+            if (examTypesWithData.length === 0) {
+                tableHTML = '<tr><td colspan="5" class="text-center text-muted">暂无排名数据</td></tr>';
+            } else {
+                examTypesWithData.forEach(([examTypeName, stats]) => {
+                    const totalCount = stats.total.count;
+                    tableHTML += `
+                        <tr>
+                            <td rowspan="3" class="text-center align-middle"><strong>${examTypeName}</strong></td>
+                            <td class="text-center"><strong>${stats.range_1_3.count}个</strong></td>
+                            <td class="text-center"><strong>${stats.range_4_7.count}个</strong></td>
+                            <td class="text-center"><strong>${stats.range_8_10.count}个</strong></td>
+                            <td class="text-center"><strong>${stats.range_10_plus.count}个</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">${stats.range_1_3.uv.toLocaleString()}UV</td>
+                            <td class="text-center">${stats.range_4_7.uv.toLocaleString()}UV</td>
+                            <td class="text-center">${stats.range_8_10.uv.toLocaleString()}UV</td>
+                            <td class="text-center">${stats.range_10_plus.uv.toLocaleString()}UV</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">${totalCount > 0 ? Math.round(stats.range_1_3.count / totalCount * 100) : 0}%</td>
+                            <td class="text-center">${totalCount > 0 ? Math.round(stats.range_4_7.count / totalCount * 100) : 0}%</td>
+                            <td class="text-center">${totalCount > 0 ? Math.round(stats.range_8_10.count / totalCount * 100) : 0}%</td>
+                            <td class="text-center">${totalCount > 0 ? Math.round(stats.range_10_plus.count / totalCount * 100) : 0}%</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            tbody.innerHTML = tableHTML;
+            
+            // 显示统计表格
+            document.getElementById('ranking-stats-table').style.display = 'block';
+        }
+
+        // 显示排名查询结果表格
+        function displayRankingTable(results) {
+            const tbody = document.getElementById('unified-results-table');
+            tbody.innerHTML = '';
+            
+            // 显示排名结果表头
+            document.getElementById('table-header-keywords').style.display = 'none';
+            document.getElementById('table-header-results').style.display = '';
+            
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                
+                let trafficInfo = '';
+                if (result.previous_uv && result.decline_amount) {
+                    trafficInfo = `去年UV: ${result.previous_uv.toLocaleString()}<br>下降: ${result.decline_amount.toLocaleString()}`;
+                } else {
+                    trafficInfo = '手动查询无流量数据';
+                }
+                
+                row.innerHTML = `
+                    <td>${result.index}</td>
+                    <td><a href="${result.url}" target="_blank" class="text-decoration-none">${result.url.substring(0, 40)}...</a></td>
+                    <td>${result.final_keyword || result.keywords || '-'}</td>
+                    <td>${result.domain}</td>
+                    <td><strong>${result.rank}</strong></td>
+                    <td>${result.site_count || 0}</td>
+                    <td><small>${trafficInfo}</small></td>
+                    <td>${result.error ? '<span class="text-danger">失败</span>' : '<span class="text-success">成功</span>'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // 更新表格类型标识
+            document.getElementById('table-type-badge').textContent = '排名查询结果';
+            document.getElementById('table-type-badge').className = 'badge bg-success';
+            
+            // 显示导出结果按钮
+            document.getElementById('export-results-btn').style.display = 'inline-block';
+            
+            // 生成并显示统计表格
+            generateRankingStatsTable(results);
+        }
+
+        // 其他函数（取消、导出等）
+        function cancelExtract() {
+            if (!currentExtractSessionId) return;
+            
+            fetch('/rank/api/cancel_extract', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('extract-status').textContent = '已取消';
+                    document.getElementById('cancel-extract-btn').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function cancelQuery() {
+            if (!currentQuerySessionId) return;
+            
+            fetch(`/api/cancel_query/${currentQuerySessionId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('query-status-integrated').textContent = '已取消';
+                    document.getElementById('cancel-query-integrated-btn').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function exportKeywords() {
+            if (!currentExtractSessionId) {
+                alert('没有可导出的关键词数据');
+                return;
+            }
+            
+            fetch('/export_keywords', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentExtractSessionId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('导出失败: ' + data.error);
+                } else {
+                    alert('导出成功: ' + data.message);
+                    window.open(data.download_url, '_blank');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('导出失败');
+            });
+        }
+
+        function exportResults() {
+            if (!currentQuerySessionId) {
+                alert('没有可导出的查询结果');
+                return;
+            }
+            
+            fetch('/export_results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentQuerySessionId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('导出失败: ' + data.error);
+                } else {
+                    alert('导出成功: ' + data.message);
+                    window.open(data.download_url, '_blank');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('导出失败');
+            });
+        }
+
+        // 手动查询排名
+        function startManualQuery() {
+            const urlsText = document.getElementById('manual-urls').value.trim();
+            
+            if (!urlsText) {
+                alert('请输入要查询的URL');
+                return;
+            }
+            
+            const urls = urlsText.split('\n').filter(url => url.trim());
+            
+            if (urls.length === 0) {
+                alert('没有有效的URL');
+                return;
+            }
+            
+            // 开始查询
+            fetch('/rank/api/manual_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ urls: urls })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('错误: ' + data.error);
+                } else {
+                    // 显示手动查询结果
+                    document.getElementById('unified-results-section').style.display = 'block';
+                    displayRankingTable(data.results);
+                    
+                    // 手动查询没有提取的关键词，所以隐藏关键词导出按钮
+                    document.getElementById('export-results-btn').style.display = 'inline-block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('手动查询失败');
+            });
+        }
+
+
+
+        // 第三个监听器的逻辑已合并到主监听器中
+
+        // 更新API使用信息
+        function updateApiUsageInfo(usageInfo) {
+            try {
+                // 更新查询统计显示
+                if (usageInfo.cache_hit_rate !== undefined) {
+                    document.getElementById('cache-hit-rate').textContent = usageInfo.cache_hit_rate + '%';
+                }
+                if (usageInfo.api_calls_saved !== undefined) {
+                    document.getElementById('api-calls-saved').textContent = usageInfo.api_calls_saved;
+                }
+                if (usageInfo.avg_response_time !== undefined) {
+                    document.getElementById('avg-response-time').textContent = usageInfo.avg_response_time + 'ms';
+                }
+                if (usageInfo.current_qps !== undefined) {
+                    document.getElementById('current-qps').textContent = usageInfo.current_qps + '/分钟';
+                }
+            } catch (error) {
+                console.error('更新API使用信息失败:', error);
+            }
+        }
+
+        // 更新缓存统计信息
+        function updateCacheStats() {
+            console.log('正在更新缓存统计...');
+            fetch('/rank/api/get_config')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('收到配置数据:', data);
+                    if (data.success && data.usage_info) {
+                        const usage = data.usage_info;
+                        console.log('使用信息:', usage);
+                        
+                        // 更新统计显示
+                        if (usage.cache_hit_rate !== undefined) {
+                            document.getElementById('cache-hit-rate').textContent = usage.cache_hit_rate + '%';
+                        }
+                        if (usage.api_calls_saved !== undefined) {
+                            document.getElementById('api-calls-saved').textContent = usage.api_calls_saved;
+                        }
+                        if (usage.avg_response_time !== undefined) {
+                            document.getElementById('avg-response-time').textContent = usage.avg_response_time + 'ms';
+                        }
+                        if (usage.current_qps !== undefined) {
+                            document.getElementById('current-qps').textContent = usage.current_qps + '/分钟';
+                        }
+                        
+                        console.log('统计数据已更新');
+                    } else {
+                        console.warn('配置API返回的数据无效:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('获取配置信息失败:', error);
+                });
+        }
+
+
+    </script>
+</body>
+</html> 

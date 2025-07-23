@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流量数据分析系统</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --secondary-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            --success-gradient: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+            --border-radius: 15px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+
+
+
+        .container {
+            max-width: 900px;
+            padding: 2rem 1rem;
+        }
+
+        .main-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .main-header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-shadow: none;
+        }
+
+        .main-header p {
+            font-size: 1.2rem;
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .card-header {
+            background: #4facfe;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            padding: 1.2rem 1.5rem;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px dashed #dee2e6;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-upload-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .file-input-display {
+            background: white;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+
+        .file-input-display:hover {
+            border-color: #4facfe;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.1);
+        }
+
+        .file-input-display.active {
+            border-color: #4facfe;
+            background: #f8f9fa;
+        }
+
+        .file-input-text {
+            flex: 1;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .file-input-text.selected {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .file-input-icon {
+            color: #4facfe;
+            font-size: 1.2rem;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .submit-btn {
+            background: #4facfe;
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
+            background: #00cec9;
+        }
+
+        .requirements-section {
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #4facfe;
+        }
+
+        .requirements-section h5 {
+            color: #0984e3;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .requirements-section ul {
+            margin-bottom: 0;
+        }
+
+        .requirements-section li {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #4facfe;
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.8rem;
+        }
+
+        .feature-desc {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .history-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .history-table th {
+            background: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            padding: 1rem;
+            border: none;
+        }
+
+        .history-table td {
+            padding: 1rem;
+            border: none;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-group .btn {
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            margin: 0 0.2rem;
+        }
+
+        .btn-outline-info {
+            border-color: #17a2b8;
+            color: #17a2b8;
+        }
+
+        .btn-outline-info:hover {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-outline-primary {
+            border-color: #4facfe;
+            color: #4facfe;
+        }
+
+        .btn-outline-primary:hover {
+            background: #4facfe;
+            color: white;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .upload-section {
+                padding: 1.5rem;
+            }
+        }
+
+        /* 导航栏样式 */
+        .navbar-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
+        }
+
+        .navbar-custom .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .navbar-custom .navbar-brand i {
+            margin-right: 0.5rem;
+            color: #ffd700;
+        }
+
+        .navbar-custom .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.2rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-custom .navbar-nav .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .navbar-custom .navbar-nav .nav-link.active {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .navbar-custom .navbar-toggler {
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .navbar-custom .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        .navbar-custom .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* 主容器样式调整 */
+        .main-container {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+    <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-chart-line"></i>流量数据分析系统
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#history-reports" onclick="scrollToReports()">
+                            <i class="fas fa-history"></i> 历史报告
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#session-reports" onclick="scrollToSessionReports()">
+                            <i class="fas fa-chart-line"></i> 在线报告
+                        </a>
+                    </li>
+                    <!-- 暂时隐藏排名查询入口
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" onclick="openRankQuery()">
+                            <i class="fas fa-search"></i> 排名查询
+                        </a>
+                    </li>
+                    -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="main-header">
+            <h1><i class="fas fa-chart-line"></i> 流量数据分析系统</h1>
+            <p>智能分析您的关键词数据，提供专业的SEO优化建议</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-upload"></i>
+                数据上传与分析
+            </div>
+            <div class="card-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }}"></i>
+                                {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+                <div class="requirements-section">
+                    <h5><i class="fas fa-info-circle"></i> Excel文件要求</h5>
+                    <ul>
+                        <li><strong>必须包含以下列</strong>（列名可以是以下任意一种）:
+                            <ul>
+                                <li><i class="fas fa-link"></i> <strong>URL列:</strong> URL, Url, url, 网址, 链接, url地址, URL地址</li>
+                                <li><i class="fas fa-users"></i> <strong>UV列:</strong> UV, Uv, uv, 访客数, 独立访客, 访问次数, 用户数</li>
+                                <li><i class="fas fa-eye"></i> <strong>PV列:</strong> PV, Pv, pv, 浏览量, 页面浏览, 访问量, 点击量</li>
+                            </ul>
+                        </li>
+                        <li><i class="fas fa-code"></i> <strong>URL格式:</strong> 必须包含形如 "/123.html" 的格式，以便提取内容ID</li>
+                        <li><i class="fas fa-file-excel"></i> <strong>支持格式:</strong> .xlsx, .xls</li>
+                    </ul>
+                </div>
+                
+                <div class="upload-section">
+                <form action="/analyze" method="post" enctype="multipart/form-data">
+                        <div class="file-upload-wrapper">
+                            <label class="file-upload-label" for="current_file">
+                                <i class="fas fa-calendar-alt"></i> 当前年度数据文件 (必选)
+                            </label>
+                            <div class="file-input-container">
+                                <input type="file" class="file-input" id="current_file" name="current_file" required accept=".xlsx,.xls">
+                                <div class="file-input-display" id="current_file_display">
+                                    <span class="file-input-text">点击选择文件或拖拽文件到此处</span>
+                                    <i class="fas fa-cloud-upload-alt file-input-icon"></i>
+                                </div>
+                            </div>
+                            <div class="help-text">
+                                <i class="fas fa-lightbulb"></i>
+                                上传当前年度的Excel数据文件 (例如: 2025年数据)
+                            </div>
+                        </div>
+                        
+                        <div class="file-upload-wrapper">
+                            <label class="file-upload-label" for="previous_file">
+                                <i class="fas fa-calendar-minus"></i> 上一年度数据文件 (可选)
+                            </label>
+                            <div class="file-input-container">
+                                <input type="file" class="file-input" id="previous_file" name="previous_file" accept=".xlsx,.xls">
+                                <div class="file-input-display" id="previous_file_display">
+                                    <span class="file-input-text">点击选择文件或拖拽文件到此处</span>
+                                    <i class="fas fa-cloud-upload-alt file-input-icon"></i>
+                                </div>
+                            </div>
+                            <div class="help-text">
+                                <i class="fas fa-lightbulb"></i>
+                                上传上一年度的Excel数据文件，用于对比分析 (例如: 2024年数据)
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-rocket"></i> 开始分析
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 功能介绍 -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-cogs"></i>
+                功能特色
+            </div>
+            <div class="card-body">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="feature-title">基础数据分析</div>
+                        <div class="feature-desc">统计URL总数、UV、PV等核心指标，全面了解数据概况</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-copy"></i>
+                        </div>
+                        <div class="feature-title">ID重复检测</div>
+                        <div class="feature-desc">智能分析PC端和移动端的内容重复情况，优化SEO结构</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="feature-title">数据对比分析</div>
+                        <div class="feature-desc">深度分析两年间内容ID的变化趋势和差异</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-trending-down"></i>
+                        </div>
+                        <div class="feature-title">流量变化追踪</div>
+                        <div class="feature-desc">精准定位流量下降的URL，提供针对性优化建议</div>
+                    </div>
+                    <!-- 暂时隐藏排名查询工具
+                    <div class="feature-card" onclick="openRankQuery()" style="cursor: pointer;">
+                        <div class="feature-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="feature-title">排名查询工具</div>
+                        <div class="feature-desc">独立的关键词排名查询系统，支持批量查询和API配置管理</div>
+                    </div>
+                    -->
+                </div>
+                            </div>
+                        </div>
+        
+        <!-- 历史报告区域 -->
+        {% if history_reports %}
+        <div class="card" id="history-reports">
+            <div class="card-header">
+                <i class="fas fa-history"></i>
+                历史分析报告
+                    </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    以下是最近生成的分析报告，点击可直接查看或下载：
+                </p>
+                <div class="table-responsive">
+                    <table class="table history-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-clock"></i> 报告时间</th>
+                                <th><i class="fas fa-file-alt"></i> 文件大小</th>
+                                <th><i class="fas fa-tools"></i> 操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in history_reports[:10] %}
+                            <tr>
+                                <td>{{ report.formatted_time }}</td>
+                                <td>{{ report.file_size }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('view_report', filename=report.filename) }}" 
+                                           class="btn btn-outline-info">
+                                            <i class="fas fa-eye"></i> 查看
+                                        </a>
+                                        <a href="{{ url_for('download_file', filename=report.filename) }}" 
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i> 下载
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if history_reports|length > 10 %}
+                <p class="text-muted mt-3">
+                    <small><i class="fas fa-info"></i> 显示最近10个报告，共有{{ history_reports|length }}个历史报告</small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Session分析报告区域 -->
+        {% if session_reports %}
+        <div class="card" id="session-reports">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i>
+                在线分析报告
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    以下是最近完成的在线分析报告，点击可直接查看详细结果：
+                </p>
+                <div class="table-responsive">
+                    <table class="table history-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-clock"></i> 分析时间</th>
+                                <th><i class="fas fa-file-excel"></i> 数据文件</th>
+                                <th><i class="fas fa-file-alt"></i> 文件大小</th>
+                                <th><i class="fas fa-tools"></i> 操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in session_reports[:10] %}
+                            <tr>
+                                <td>{{ report.formatted_time }}</td>
+                                <td>
+                                    <div class="file-info">
+                                        <strong>{{ report.current_filename }}</strong>
+                                        {% if report.previous_filename %}
+                                        <br><small class="text-muted">对比: {{ report.previous_filename }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ report.file_size }}</td>
+                                <td>
+                                    <a href="{{ url_for('results', session_id=report.session_id) }}" 
+                                       class="btn btn-outline-success">
+                                        <i class="fas fa-chart-line"></i> 查看结果
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if session_reports|length > 10 %}
+                <p class="text-muted mt-3">
+                    <small><i class="fas fa-info"></i> 显示最近10个报告，共有{{ session_reports|length }}个在线报告</small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+    </div>
+    
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 文件上传功能
+            function setupFileInput(inputId, displayId) {
+                const input = document.getElementById(inputId);
+                const display = document.getElementById(displayId);
+                const textSpan = display.querySelector('.file-input-text');
+                
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        textSpan.textContent = file.name;
+                        textSpan.classList.add('selected');
+                        display.classList.add('active');
+                    } else {
+                        textSpan.textContent = '点击选择文件或拖拽文件到此处';
+                        textSpan.classList.remove('selected');
+                        display.classList.remove('active');
+                    }
+                });
+                
+                // 拖拽功能
+                display.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    display.style.borderColor = '#4facfe';
+                    display.style.background = '#f8f9fa';
+                });
+                
+                display.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    display.style.borderColor = '#e0e6ed';
+                    display.style.background = 'white';
+                });
+                
+                display.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    display.style.borderColor = '#e0e6ed';
+                    display.style.background = 'white';
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const file = files[0];
+                        if (file.name.match(/\.(xlsx|xls)$/i)) {
+                            input.files = files;
+                            textSpan.textContent = file.name;
+                            textSpan.classList.add('selected');
+                            display.classList.add('active');
+                        } else {
+                            alert('请选择Excel文件（.xlsx或.xls格式）');
+                        }
+                    }
+                });
+            }
+            
+            setupFileInput('current_file', 'current_file_display');
+            setupFileInput('previous_file', 'previous_file_display');
+            
+            // 表单提交动画
+            const form = document.querySelector('form');
+            const submitBtn = document.querySelector('.submit-btn');
+            
+            form.addEventListener('submit', function(e) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在分析中...';
+                submitBtn.disabled = true;
+            });
+            
+            // 添加卡片动画
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+        
+        // 排名查询功能入口
+        function openRankQuery() {
+            // 直接跳转到排名查询页面
+            window.open('http://120.48.54.112:5051', '_blank');
+        }
+        
+        // 显示排名查询功能说明模态框
+        function showRankQueryModal() {
+            const modalHtml = `
+                <div class="modal fade" id="rankQueryModal" tabindex="-1" aria-labelledby="rankQueryModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="rankQueryModalLabel">
+                                    <i class="fas fa-search"></i> 排名查询工具
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>排名查询工具功能介绍</strong>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-star"></i> 主要功能</h6>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success"></i> API密钥管理和保存</li>
+                                            <li><i class="fas fa-check text-success"></i> 手动URL排名查询</li>
+                                            <li><i class="fas fa-check text-success"></i> 批量URL排名查询</li>
+                                            <li><i class="fas fa-check text-success"></i> Excel报告中关键词查询</li>
+                                            <li><i class="fas fa-check text-success"></i> 查询进度实时跟踪</li>
+                                            <li><i class="fas fa-check text-success"></i> 结果导出和保存</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6><i class="fas fa-cog"></i> 技术规格</h6>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-server text-primary"></i> 独立端口：5051</li>
+                                            <li><i class="fas fa-api text-primary"></i> 支持站长之家API</li>
+                                            <li><i class="fas fa-shield-alt text-primary"></i> 安全的密钥存储</li>
+                                            <li><i class="fas fa-chart-line text-primary"></i> 实时进度监控</li>
+                                            <li><i class="fas fa-download text-primary"></i> Excel格式导出</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>服务未启动</strong><br>
+                                    排名查询服务当前未运行在端口5051上。请手动启动排名查询服务。
+                                </div>
+                                
+                                <h6><i class="fas fa-terminal"></i> 启动方法</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <code>cd /Users/tang/Desktop/python/数据分析</code><br>
+                                    <code>python rank_query_app.py</code>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-lightbulb"></i>
+                                        启动后访问 <code>http://localhost:5051</code> 即可使用排名查询功能
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times"></i> 关闭
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="retryRankQuery()">
+                                    <i class="fas fa-redo"></i> 重试连接
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 移除旧的模态框（如果存在）
+            const existingModal = document.getElementById('rankQueryModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 添加新的模态框到页面
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('rankQueryModal'));
+            modal.show();
+        }
+        
+        // 重试连接排名查询服务
+        function retryRankQuery() {
+            const retryBtn = document.querySelector('[onclick="retryRankQuery()"]');
+            const originalText = retryBtn.innerHTML;
+            
+            retryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 连接中...';
+            retryBtn.disabled = true;
+            
+            fetch('http://localhost:5051', {
+                method: 'HEAD',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                // 连接成功，关闭模态框并打开新窗口
+                const modal = bootstrap.Modal.getInstance(document.getElementById('rankQueryModal'));
+                modal.hide();
+                window.open('http://localhost:5051', '_blank');
+            })
+            .catch(() => {
+                // 连接失败，恢复按钮状态
+                retryBtn.innerHTML = originalText;
+                retryBtn.disabled = false;
+                
+                // 显示错误提示
+                const alertHtml = `
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        仍无法连接到排名查询服务，请确保服务已正确启动。
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                const modalBody = document.querySelector('#rankQueryModal .modal-body');
+                modalBody.insertAdjacentHTML('afterbegin', alertHtml);
+            });
+        }
+        
+        // 滚动到历史报告区域
+        function scrollToReports() {
+            const reportsSection = document.getElementById('history-reports');
+            if (reportsSection) {
+                reportsSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                    } else {
+                // 如果没有历史报告区域，显示提示
+                alert('当前没有历史报告可查看，请先完成数据分析生成报告。');
+                }
+        }
+        
+        // 滚动到Session报告区域
+        function scrollToSessionReports() {
+            const sessionReportsSection = document.getElementById('session-reports');
+            if (sessionReportsSection) {
+                sessionReportsSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            } else {
+                // 如果没有Session报告区域，显示提示
+                alert('当前没有在线报告可查看，请先完成数据分析生成报告。');
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分析报告在线查看</title>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --secondary-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            --success-gradient: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+            --border-radius: 15px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+
+        /* 导航栏样式 */
+        .navbar-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
+        }
+
+        .navbar-custom .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .navbar-custom .navbar-brand i {
+            margin-right: 0.5rem;
+            color: #ffd700;
+        }
+
+        .navbar-custom .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.2rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-custom .navbar-nav .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .navbar-custom .navbar-nav .nav-link.active {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .navbar-custom .navbar-toggler {
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .navbar-custom .navbar-toggler:focus {
+            box-shadow: none;
+        }
+
+        .navbar-custom .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.8%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        .main-container {
+            margin-top: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            padding: 2rem 1rem;
+        }
+
+        .back-btn {
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .btn-back {
+            background: #ffffff;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back:hover {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.2);
+        }
+
+        .report-header {
+            background: #ffffff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .report-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+
+        .report-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .report-title i {
+            color: #4facfe;
+        }
+
+        .report-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #4facfe;
+        }
+
+        .report-info .row > div {
+            margin-bottom: 0.5rem;
+        }
+
+        .report-info strong {
+            color: #495057;
+        }
+
+        .download-section {
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .btn-download {
+            background: var(--success-gradient);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 184, 148, 0.3);
+            color: white;
+        }
+
+        .main-card {
+            background: #ffffff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease 0.4s both;
+            overflow: hidden;
+        }
+
+        .tab-navigation {
+            background: #ffffff;
+            border-bottom: 2px solid #f1f3f4;
+            padding: 0 1rem;
+        }
+
+        .nav-tabs {
+            border-bottom: none;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 1rem 1.5rem;
+            border-radius: 12px 12px 0 0;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .nav-tabs .nav-link .badge {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 20px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .nav-tabs .nav-link:not(.active) .badge {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        .tab-content {
+            background: #ffffff;
+        }
+
+        .tab-pane {
+            min-height: 400px;
+        }
+
+        .sheet-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            color: #495057;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sheet-info i {
+            color: #4facfe;
+        }
+
+        .table-container {
+            max-height: 700px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #4facfe;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #3a8bfd;
+        }
+
+        .table {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            padding: 1rem 0.75rem;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .table th:last-child {
+            border-right: none;
+        }
+
+        .table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f1f3f4;
+            border-right: 1px solid #f1f3f4;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .table td:last-child {
+            border-right: none;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(79, 172, 254, 0.05);
+            transform: translateX(2px);
+        }
+
+        .table tbody tr.table-active {
+            background: rgba(79, 172, 254, 0.1);
+            border-left: 4px solid #4facfe;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background: rgba(248, 249, 250, 0.5);
+        }
+
+        .table-striped tbody tr:nth-of-type(odd):hover {
+            background: rgba(79, 172, 254, 0.05);
+        }
+
+        /* 数字列右对齐 */
+        .table td:nth-child(n+4) {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* URL列左对齐 */
+        .table td:nth-child(2), .table td:nth-child(3) {
+            text-align: left;
+            word-break: break-all;
+            max-width: 200px;
+        }
+
+        .table a {
+            color: #4facfe;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .table a:hover {
+            color: #0984e3;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem;
+            border-left: 4px solid #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .error-message i {
+            color: #dc3545;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .alert-warning i {
+            color: #ffc107;
+        }
+
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.1), transparent);
+            animation: loading 1s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 考种子标签页样式 */
+        .sub-tabs {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0 1rem;
+        }
+
+        .sub-tabs .nav {
+            border-bottom: none;
+        }
+
+        .sub-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #ffffff;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: 1px solid #dee2e6;
+        }
+
+        .sub-tabs .nav-link:hover {
+            color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+            border-color: #4facfe;
+        }
+
+        .sub-tabs .nav-link.active {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .sub-tabs .nav-link .badge {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 15px;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+        }
+
+        .sub-tabs .nav-link:not(.active) .badge {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        .exam-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 12px;
+            margin-right: 0.5rem;
+        }
+
+        .exam-type-cjks { background: #e3f2fd; color: #1976d2; }
+        .exam-type-zjzcgl { background: #f3e5f5; color: #7b1fa2; }
+        .exam-type-zckjs { background: #e8f5e8; color: #388e3c; }
+        .exam-type-gaoji { background: #fff3e0; color: #f57c00; }
+        .exam-type-zjjs { background: #fce4ec; color: #c2185b; }
+        .exam-type-shuiwushi { background: #e0f2f1; color: #00796b; }
+        .exam-type-scjy { background: #f3e5ab; color: #827717; }
+        .exam-type-acca { background: #e1f5fe; color: #0277bd; }
+        .exam-type-cma { background: #fce4ec; color: #ad1457; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .report-title {
+                font-size: 1.8rem;
+            }
+            
+            .report-header {
+                padding: 1.5rem;
+            }
+            
+            .nav-tabs .nav-link {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .sub-tabs .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+            
+            .table-container {
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-chart-line"></i> 数据分析报告
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#history-reports">
+                            <i class="fas fa-history"></i> 历史报告
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="container">
+            <div class="back-btn">
+                <a href="{{ url_for('index') }}" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> 返回首页
+                </a>
+            </div>
+            
+            <div class="report-header">
+                <div class="report-title">
+                    <i class="fas fa-chart-line"></i>
+                    分析报告在线查看
+                </div>
+                <div class="report-info">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-file-alt"></i> 文件名：</strong>{{ file_info.filename }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-hdd"></i> 文件大小：</strong>{{ file_info.file_size }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong><i class="fas fa-clock"></i> 生成时间：</strong>{{ file_info.modified_time }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="download-section">
+                <a href="{{ url_for('download_file', filename=file_info.filename) }}" 
+                   class="btn btn-download">
+                    <i class="fas fa-download"></i> 下载Excel文件
+                </a>
+                <a href="http://120.48.54.112:5051" target="_blank" 
+                   class="btn btn-primary ms-3">
+                    <i class="fas fa-search"></i> 关键词排名查询
+                </a>
+            </div>
+            
+            {% if excel_data %}
+            <div class="main-card">
+                <div class="tab-navigation">
+                    <!-- 标签页导航 -->
+                    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                        {% for sheet_name in sheet_names %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if loop.first %}active{% endif %}" 
+                               id="tab-{{ loop.index }}" 
+                                    data-bs-toggle="tab" 
+                                    data-bs-target="#sheet-{{ loop.index }}" 
+                                    type="button" 
+                               role="tab" 
+                               aria-controls="sheet-{{ loop.index }}" 
+                               aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
+                                {{ sheet_name }}
+                                {% if excel_data[sheet_name].get('total_rows') %}
+                                <span class="badge">{{ excel_data[sheet_name].total_rows }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                    
+                    <!-- 标签页内容 -->
+                    <div class="tab-content" id="reportTabsContent">
+                        {% for sheet_name in sheet_names %}
+                        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                             id="sheet-{{ loop.index }}" 
+                             role="tabpanel" 
+                             aria-labelledby="tab-{{ loop.index }}">
+                            
+                            {% if excel_data[sheet_name].get('error') %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            <span>{{ excel_data[sheet_name].error }}</span>
+                            </div>
+                            {% else %}
+                            <div class="sheet-info">
+                                <i class="fas fa-table"></i>
+                            <span>工作表：{{ sheet_name }} | 总行数：{{ excel_data[sheet_name].total_rows }} | 列数：{{ excel_data[sheet_name].columns|length }}</span>
+                        </div>
+                        
+                        {% if '下降' in sheet_name or '流量变化' in sheet_name or '变化分析' in sheet_name %}
+                        <!-- 下降词分析 - 考种分类显示 -->
+                        <div class="sub-tabs">
+                            <ul class="nav nav-pills" id="examTypeTabs-{{ loop.index }}" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="all-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#all-{{ loop.index }}" type="button" role="tab">
+                                        全部 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="cjks-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#cjks-{{ loop.index }}" type="button" role="tab">
+                                        初级会计 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="zjzcgl-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#zjzcgl-{{ loop.index }}" type="button" role="tab">
+                                        中级会计 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="zckjs-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#zckjs-{{ loop.index }}" type="button" role="tab">
+                                        注会 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="gaoji-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#gaoji-{{ loop.index }}" type="button" role="tab">
+                                        高级会计 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="zjjs-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#zjjs-{{ loop.index }}" type="button" role="tab">
+                                        中级经济师 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="shuiwushi-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#shuiwushi-{{ loop.index }}" type="button" role="tab">
+                                        税务师 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="scjy-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#scjy-{{ loop.index }}" type="button" role="tab">
+                                        税收实务 <span class="badge">0</span>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="acca-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                            data-bs-target="#acca-{{ loop.index }}" type="button" role="tab">
+                                    ACCA <span class="badge">0</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="cma-tab-{{ loop.index }}" data-bs-toggle="pill" 
+                                        data-bs-target="#cma-{{ loop.index }}" type="button" role="tab">
+                                    CMA <span class="badge">0</span>
+                                </button>
+                            </li>
+                        </ul>
+                        </div>
+                        
+                    <div class="tab-content" id="examTypeTabsContent-{{ loop.index }}">
+                        <!-- 全部数据 -->
+                        <div class="tab-pane fade show active" id="all-{{ loop.index }}" role="tabpanel">
+                        <div class="table-container">
+                                <table class="table table-striped table-hover" data-sheet-index="{{ loop.index }}">
+                                    <thead>
+                                        <tr>
+                                            {% for column in excel_data[sheet_name].columns %}
+                                            <th>{{ column }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in excel_data[sheet_name].data %}
+                                        <tr data-url="{{ row[1] if row|length > 1 else '' }}">
+                                            {% for cell in row %}
+                                            <td>
+                                                {% if cell is none %}
+                                                <span class="text-muted">-</span>
+                                                {% elif cell is string and cell.startswith('http') %}
+                                                <span class="exam-type-badge" data-exam-type=""></span>
+                                                <a href="{{ cell }}" target="_blank" title="{{ cell }}">
+                                                    {{ cell|truncate(50) }}
+                                                </a>
+                                                {% else %}
+                                                {{ cell }}
+                                                {% endif %}
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- 各考种数据标签页 -->
+                        {% set outer_loop = loop %}
+                        {% for exam_type in ['cjks', 'zjzcgl', 'zckjs', 'gaoji', 'zjjs', 'shuiwushi', 'scjy', 'acca', 'cma'] %}
+                        <div class="tab-pane fade" id="{{ exam_type }}-{{ outer_loop.index }}" role="tabpanel">
+                            <div class="table-container">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            {% for column in excel_data[sheet_name].columns %}
+                                            <th>{{ column }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody class="exam-type-tbody" data-exam-type="{{ exam_type }}" data-sheet-index="{{ outer_loop.index }}">
+                                        <!-- 数据将通过JavaScript动态填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <!-- 普通表格显示 -->
+                    <div class="table-container">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    {% for column in excel_data[sheet_name].columns %}
+                                    <th>{{ column }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in excel_data[sheet_name].data %}
+                                <tr>
+                                    {% for cell in row %}
+                                    <td>
+                                        {% if cell is none %}
+                                        <span class="text-muted">-</span>
+                                        {% elif cell is string and cell.startswith('http') %}
+                                        <a href="{{ cell }}" target="_blank" title="{{ cell }}">
+                                            {{ cell|truncate(50) }}
+                                        </a>
+                                        {% else %}
+                                        {{ cell }}
+                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>没有找到可显示的报告数据。</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 考种配置
+            const examTypes = {
+                'cjks': { name: '初级会计', class: 'exam-type-cjks' },
+                'zjzcgl': { name: '中级会计', class: 'exam-type-zjzcgl' },
+                'zckjs': { name: '注会', class: 'exam-type-zckjs' },
+                'gaoji': { name: '高级会计', class: 'exam-type-gaoji' },
+                'zjjs': { name: '中级经济师', class: 'exam-type-zjjs' },
+                'shuiwushi': { name: '税务师', class: 'exam-type-shuiwushi' },
+                'scjy': { name: '税收实务', class: 'exam-type-scjy' },
+                'acca': { name: 'ACCA', class: 'exam-type-acca' },
+                'cma': { name: 'CMA', class: 'exam-type-cma' }
+            };
+
+            // 识别URL中的考种
+            function getExamType(url) {
+                if (!url) return null;
+                
+                for (const [key, value] of Object.entries(examTypes)) {
+                    if (url.includes(key)) {
+                        return key;
+                    }
+                }
+                return null;
+            }
+
+            // 处理考种分类
+            function processExamTypeClassification() {
+                // 查找所有带有考种分类的表格
+                const tablesWithClassification = document.querySelectorAll('table[data-sheet-index]');
+                
+                tablesWithClassification.forEach(table => {
+                    const sheetIndex = table.getAttribute('data-sheet-index');
+                    const examTypeCounts = {};
+                    
+                    // 初始化计数器
+                    Object.keys(examTypes).forEach(type => {
+                        examTypeCounts[type] = 0;
+                    });
+                    
+                    // 分析每一行数据
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const url = row.getAttribute('data-url');
+                        const examType = getExamType(url);
+                        
+                        if (examType) {
+                            examTypeCounts[examType]++;
+                            
+                            // 添加考种徽章
+                            const badge = row.querySelector('.exam-type-badge');
+                            if (badge) {
+                                badge.textContent = examTypes[examType].name;
+                                badge.className = `exam-type-badge ${examTypes[examType].class}`;
+                            }
+                            
+                            // 克隆行到对应的考种标签页
+                            const examTypeTable = document.querySelector(`tbody[data-exam-type="${examType}"][data-sheet-index="${sheetIndex}"]`);
+                            if (examTypeTable) {
+                                const clonedRow = row.cloneNode(true);
+                                examTypeTable.appendChild(clonedRow);
+                            }
+                        }
+                    });
+                    
+                    // 更新徽章计数
+                    Object.entries(examTypeCounts).forEach(([type, count]) => {
+                        const tab = document.querySelector(`#${type}-tab-${sheetIndex} .badge`);
+                        if (tab) {
+                            tab.textContent = count;
+                        }
+                        
+                        // 如果某个考种没有数据，添加提示信息
+                        if (count === 0) {
+                            const examTypeTable = document.querySelector(`tbody[data-exam-type="${type}"][data-sheet-index="${sheetIndex}"]`);
+                            if (examTypeTable) {
+                                const emptyRow = document.createElement('tr');
+                                emptyRow.innerHTML = `
+                                    <td colspan="100%" class="text-center text-muted py-4">
+                                        <i class="fas fa-info-circle"></i> 
+                                        暂无${examTypes[type].name}相关数据
+                                    </td>
+                                `;
+                                examTypeTable.appendChild(emptyRow);
+                            }
+                        }
+                    });
+                    
+                    // 更新全部标签的计数
+                    const allTab = document.querySelector(`#all-tab-${sheetIndex} .badge`);
+                    if (allTab) {
+                        allTab.textContent = rows.length;
+                    }
+                });
+            }
+            
+            // 表格行点击高亮
+            function setupRowClickHighlight() {
+                const tableRows = document.querySelectorAll('.table tbody tr');
+                tableRows.forEach(row => {
+                    row.addEventListener('click', function() {
+                        // 在当前表格容器内移除其他行的高亮
+                        const currentTable = this.closest('table');
+                        const currentTableRows = currentTable.querySelectorAll('tbody tr');
+                        currentTableRows.forEach(r => r.classList.remove('table-active'));
+                        
+                        // 添加当前行的高亮
+                        this.classList.add('table-active');
+                    });
+                });
+            }
+            
+            // 标签页切换动画
+            function setupTabAnimation() {
+                const tabButtons = document.querySelectorAll('.nav-link');
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const targetId = this.getAttribute('data-bs-target');
+                        const targetPane = document.querySelector(targetId);
+                        
+                        if (targetPane) {
+                            const tableContainer = targetPane.querySelector('.table-container');
+                            if (tableContainer) {
+                                tableContainer.classList.add('loading');
+                                
+                                setTimeout(() => {
+                                    tableContainer.classList.remove('loading');
+                                    // 重新设置行点击事件
+                                    setupRowClickHighlight();
+                                }, 300);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 考种标签页切换事件
+            function setupExamTypeTabEvents() {
+                const examTypeButtons = document.querySelectorAll('[data-bs-toggle="pill"]');
+                examTypeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // 延迟重新设置行点击事件，确保DOM更新完成
+                        setTimeout(() => {
+                            setupRowClickHighlight();
+                        }, 100);
+                    });
+                });
+            }
+            
+            // 初始化
+            processExamTypeClassification();
+            setupRowClickHighlight();
+            setupTabAnimation();
+            setupExamTypeTabEvents();
+            
+            // 添加卡片动画
+            const cards = document.querySelectorAll('.main-card, .report-header');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html> 

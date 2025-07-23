@@ -1,0 +1,14 @@
+{
+  "chinaz_api_key": "请在这里填入你的站长之家API Key",
+  "other_api_keys": {
+    "baidu_api_key": "",
+    "google_api_key": ""
+  },
+  "settings": {
+    "auto_retry": true,
+    "cache_enabled": true,
+    "default_concurrent": 2,
+    "max_retries": 2,
+    "cache_expire_minutes": 30
+  }
+} 
