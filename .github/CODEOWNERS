@@ -1,0 +1,38 @@
+# CODEOWNERS 文件
+# 定义谁可以审查和批准不同文件的更改
+
+# 项目所有者 - 对所有文件有审查权限
+* @jollyroger89816
+
+# 核心代码文件 - 需要项目所有者审查
+*.py @jollyroger89816
+*.json @jollyroger89816
+*.yml @jollyroger89816
+*.yaml @jollyroger89816
+
+# 配置文件 - 需要项目所有者审查
+config.* @jollyroger89816
+requirements.txt @jellyroger89816
+*.sh @jellyroger89816
+
+# 文档文件 - 需要项目所有者审查
+*.md @jollyroger89816
+docs/ @jellyroger89816
+README* @jellyroger89816
+
+# 模板和静态文件 - 需要项目所有者审查
+templates/ @jellyroger89816
+static/ @jellyroger89816
+
+# 重要目录 - 需要项目所有者审查
+uploads/ @jellyroger89816
+sessions/ @jellyroger89816
+analysis_results/ @jellyroger89816
+exports/ @jellyroger89816
+
+# GitHub相关文件 - 需要项目所有者审查
+.github/ @jellyroger89816
+.gitignore @jellyroger89816
+
+# 默认规则：如果没有匹配到特定模式，使用项目所有者
+* @jellyroger89816
